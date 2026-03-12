@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pedir Uber por Voz</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --uber-green: #06c167;
+    --uber-green-dark: #049a50;
+    --red: #e63946;
+    --warm: #fff8f0;
+    --text: #1a1a1a;
+    --muted: #888;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--warm);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    color: var(--text);
+  }
+
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--black);
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  /* Mic Button */
+  .mic-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .mic-btn {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: none;
+    background: var(--black);
+    color: white;
+    font-size: 70px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    transition: transform 0.15s, background 0.2s;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mic-btn:active { transform: scale(0.94); }
+
+  .mic-btn.listening {
+    background: var(--red);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(230,57,70,0.4); }
+    70%  { box-shadow: 0 0 0 28px rgba(230,57,70,0); }
+    100% { box-shadow: 0 0 0 0 rgba(230,57,70,0); }
+  }
+
+  .mic-label {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+    text-align: center;
+  }
+
+  .mic-label.listening { color: var(--red); }
+
+  /* Result box */
+  .result-box {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px 24px;
+    font-size: 22px;
+    font-weight: 700;
+    min-height: 80px;
+    text-align: center;
+    color: var(--text);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid transparent;
+    transition: border 0.2s;
+  }
+
+  .result-box.has-text { border-color: var(--uber-green); }
+  .result-box .placeholder { color: #ccc; font-weight: 400; font-size: 18px; }
+
+  /* Uber button */
+  .uber-btn {
+    width: 100%;
+    max-width: 420px;
+    padding: 22px;
+    border-radius: 16px;
+    border: none;
+    background: var(--uber-green);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(6,193,103,0.3);
+    transition: transform 0.15s, background 0.2s;
+    margin-bottom: 16px;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .uber-btn:hover { background: var(--uber-green-dark); }
+  .uber-btn:active { transform: scale(0.97); }
+  .uber-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+  .clear-btn {
+    width: 100%;
+    max-width: 420px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 3px solid #ddd;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 32px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .clear-btn:active { background: #f5f5f5; }
+
+  /* Tips */
+  .tips {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  .tips h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+
+  .tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .tip-icon { font-size: 22px; flex-shrink: 0; }
+  .tip-text { font-size: 17px; color: #444; line-height: 1.4; }
+
+  .no-support {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #856404;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+</style>
+</head>
+<body>
+
+<div class="logo">🚗 Assistente</div>
+<h1>Pedir Uber<br>por Voz</h1>
+<p class="subtitle">Só falar o destino!</p>
+
+<div class="mic-area">
+  <button class="mic-btn" id="micBtn" onclick="toggleListen()">🎤</button>
+  <div class="mic-label" id="micLabel">Aperte para falar</div>
+</div>
+
+<div class="result-box" id="resultBox">
+  <span class="placeholder" id="placeholder">O destino vai aparecer aqui...</span>
+  <span id="destinoText" style="display:none"></span>
+</div>
+
+<button class="uber-btn" id="uberBtn" onclick="abrirUber()" disabled>
+  🚗 Chamar Uber
+</button>
+
+<button class="clear-btn" onclick="limpar()">🗑️ Apagar e recomeçar</button>
+
+<div class="tips">
+  <h2>Como usar</h2>
+  <div class="tip">
+    <span class="tip-icon">1️⃣</span>
+    <span class="tip-text">Aperte o botão <strong>🎤</strong> grande preto</span>
+  </div>
+  <div class="tip">
+    <span class="tip-icon">2️⃣</span>
+    <span class="tip-text">Fale o endereço destino claramente, por exemplo: <em>"Rua das Flores 123, São Paulo"</em></span>
+  </div>
+  <div class="tip">
+    <span class="tip-icon">3️⃣</span>
+    <span class="tip-text">Confira o endereço na caixa branca</span>
+  </div>
+  <div class="tip">
+    <span class="tip-icon">4️⃣</span>
+    <span class="tip-text">Aperte <strong>🚗 Chamar Uber</strong> para abrir o Uber já com o destino</span>
+  </div>
+</div>
+
+<script>
+  let recognition = null;
+  let isListening = false;
+  let destino = '';
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    document.querySelector('.mic-area').insertAdjacentHTML('beforebegin',
+      '<div class="no-support">⚠️ Este navegador não suporta reconhecimento de voz.<br>Use o Chrome no Android ou Safari no iPhone.</div>'
+    );
+    document.getElementById('micBtn').disabled = true;
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      isListening = true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micBtn').textContent = '⏹️';
+      document.getElementById('micLabel').textContent = 'Estou ouvindo...';
+      document.getElementById('micLabel').classList.add('listening');
+    };
+
+    recognition.onresult = (e) => {
+      let transcript = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      mostrarDestino(transcript);
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micBtn').textContent = '🎤';
+      document.getElementById('micLabel').classList.remove('listening');
+      if (destino) {
+        document.getElementById('micLabel').textContent = 'Destino ouvido! ✅';
+        document.getElementById('uberBtn').disabled = false;
+      } else {
+        document.getElementById('micLabel').textContent = 'Aperte para falar';
+      }
+    };
+
+    recognition.onerror = (e) => {
+      isListening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micBtn').textContent = '🎤';
+      document.getElementById('micLabel').classList.remove('listening');
+      if (e.error === 'no-speech') {
+        document.getElementById('micLabel').textContent = 'Não ouvi nada, tente de novo';
+      } else if (e.error === 'not-allowed') {
+        document.getElementById('micLabel').textContent = 'Permita o uso do microfone!';
+      } else {
+        document.getElementById('micLabel').textContent = 'Erro, tente de novo';
+      }
+    };
+  }
+
+  function toggleListen() {
+    if (!recognition) return;
+    if (isListening) {
+      recognition.stop();
+    } else {
+      destino = '';
+      recognition.start();
+    }
+  }
+
+  function mostrarDestino(texto) {
+    destino = texto;
+    document.getElementById('placeholder').style.display = 'none';
+    const dest = document.getElementById('destinoText');
+    dest.style.display = 'block';
+    dest.textContent = texto;
+    document.getElementById('resultBox').classList.add('has-text');
+  }
+
+  function abrirUber() {
+    if (!destino) return;
+    const encoded = encodeURIComponent(destino);
+    // Deep link: tenta abrir app Uber, senão abre no navegador
+    const uberDeepLink = `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encoded}`;
+    const uberWeb = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encoded}`;
+    
+    // Tenta app primeiro, depois web
+    const start = Date.now();
+    window.location.href = uberDeepLink;
+    setTimeout(() => {
+      if (Date.now() - start < 2000) {
+        window.open(uberWeb, '_blank');
+      }
+    }, 1500);
+  }
+
+  function limpar() {
+    destino = '';
+    document.getElementById('placeholder').style.display = 'inline';
+    document.getElementById('destinoText').style.display = 'none';
+    document.getElementById('destinoText').textContent = '';
+    document.getElementById('resultBox').classList.remove('has-text');
+    document.getElementById('uberBtn').disabled = true;
+    document.getElementById('micLabel').textContent = 'Aperte para falar';
+  }
+</script>
+</body>
+</html>
